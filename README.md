@@ -135,6 +135,32 @@ python data/mock_data.py
 python pipeline.py
 ```
 
-## Licenca
+### Consultar Resultados
+
+```sql
+-- Segmentação RFM
+SELECT segment, COUNT(*) as total,
+       ROUND(AVG(monetary)::numeric, 2) as ticket_medio
+FROM mart_rfm GROUP BY segment ORDER BY total DESC;
+
+-- Predições de churn
+SELECT churn_segment, COUNT(*) as total,
+       ROUND(AVG(churn_probability)::numeric, 4) as prob_media
+FROM mart_churn GROUP BY churn_segment ORDER BY prob_media DESC;
+
+-- Top clientes campeões
+SELECT customer_id, monetary, frequency, recency_days
+FROM mart_rfm WHERE segment = 'Campiao'
+ORDER BY monetary DESC LIMIT 10;
+```
+
+### Testes
+
+```bash
+pytest tests/ -v
+# 12 testes: geração de clientes, produtos, pedidos e integridade referencial
+```
+
+## Licença
 
 MIT
