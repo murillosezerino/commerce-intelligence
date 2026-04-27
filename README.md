@@ -1,166 +1,58 @@
 # Commerce Intelligence
 
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql)
-![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.4-F7931E?logo=scikitlearn)
-![dbt](https://img.shields.io/badge/dbt-1.7-FF694B?logo=dbt)
+> Technical study: customer segmentation (RFM) and churn prediction over synthetic e-commerce data, with dbt staging and an analytical dashboard.
 
-Sistema de inteligencia comercial com **segmentacao RFM**, **churn prediction** e integracao com PostgreSQL. Pipeline end-to-end que gera dados mock, cria modelos de staging, calcula metricas de cliente e treina modelo preditivo de churn.
+A focused exercise in applying classical analytics techniques to retail data. The project covers the full path from raw transactions to executive dashboard: data modeling in PostgreSQL, dbt staging views, RFM segmentation, churn prediction with Gradient Boosting, and a Plotly dashboard.
 
-## Arquitetura
+## What this project explores
 
-```
-Mock Data (Faker)
-    │
-    ▼
-PostgreSQL (raw_customers, raw_orders, raw_order_items)
-    │
-    ▼
-Staging Views (stg_customers, stg_orders, stg_order_items)
-    │
-    ├──► RFM Segmentation (mart_rfm)
-    │       Campeao, Cliente Fiel, Cliente Recente,
-    │       Em Risco, Perdido, Potencial
-    │
-    └──► Churn Prediction (mart_churn)
-            Gradient Boosting → AUC-ROC
-            Baixo / Medio / Alto Risco
-```
+- **Dimensional modeling** in PostgreSQL with dbt staging layer
+- **RFM segmentation** into 6 customer categories
+- **Churn prediction** using Gradient Boosting on engineered features
+- **Analytical dashboard** with Plotly for cohort and segment views
+- **2,000 synthetic customers** and **15,000 orders** as the working dataset
 
-## Stack Tecnica
+## Stack
 
-| Tecnologia | Uso |
-|---|---|
-| Python | Linguagem principal |
-| Pandas / NumPy | Manipulacao de dados |
-| Scikit-learn | Modelo de churn (Gradient Boosting) |
-| SQLAlchemy / psycopg2 | Conexao com PostgreSQL |
-| dbt | Transformacoes SQL |
-| Streamlit / Plotly | Dashboard (em desenvolvimento) |
-| Faker | Geracao de dados mock |
+`Python` · `PostgreSQL` · `SQLAlchemy` · `dbt` · `Scikit-Learn` · `Pandas` · `Plotly`
 
-## Dados Mock
-
-O sistema gera automaticamente:
-- **2.000 clientes** com perfil completo (nome, email, cidade, estado)
-- **15.000 pedidos** com status (entregue, cancelado, processando, devolvido)
-- **15 produtos** em 7 categorias (Eletronicos, Moda, Casa, Beleza, Esportes, Livros, Alimentos)
-- **30% de clientes churned** (sem pedido ha mais de 90 dias)
-
-## Segmentacao RFM
-
-| Segmento | Criterio |
-|---|---|
-| Campeao | Recencia >= 4, Frequencia >= 4 |
-| Cliente Fiel | Recencia >= 3, Frequencia >= 3 |
-| Cliente Recente | Recencia >= 4, Frequencia <= 2 |
-| Em Risco | Recencia <= 2, Frequencia >= 3 |
-| Perdido | Recencia <= 2, Frequencia <= 2 |
-| Potencial | Demais combinacoes |
-
-## Churn Prediction — Features
-
-| Feature | Descricao |
-|---|---|
-| customer_age_days | Dias desde o cadastro |
-| total_orders | Total de pedidos realizados |
-| total_spent | Valor total gasto |
-| avg_order_value | Ticket medio |
-| days_since_last_order | Dias desde o ultimo pedido |
-| cancelled_orders | Pedidos cancelados |
-| returned_orders | Pedidos devolvidos |
-| completed_orders | Pedidos entregues |
-| total_items | Itens comprados |
-| unique_products | Produtos unicos |
-
-## Estrutura do Projeto
+## Architecture
 
 ```
-├── pipeline.py          # Orquestrador principal
-├── data/
-│   └── mock_data.py     # Geracao de dados fake
-├── dashboard/           # Dashboard Streamlit (em desenvolvimento)
-├── dbt/
-│   └── dbt_project.yml  # Configuracao dbt
-├── ml/                  # Modelos de ML
-├── check_db.py          # Verificacao de conexao
-├── reset_db.py          # Reset do banco
-├── requirements.txt
-└── .github/workflows/
-    └── ci.yml           # CI/CD automatizado
+raw orders/customers (PostgreSQL)
+        ↓
+dbt staging views  →  feature engineering  →  RFM + churn model
+        ↓
+Plotly dashboard
 ```
 
-## Como Rodar
+## What's inside
 
-### Pre-requisitos
+- `dbt/` — staging models and source definitions
+- `src/segmentation/` — RFM logic and category assignment
+- `src/churn/` — feature engineering and Gradient Boosting model
+- `dashboard/` — Plotly visualizations
+- `tests/` — unit tests for segmentation and feature logic
 
-- Python 3.11+
-- PostgreSQL rodando localmente
-
-### Setup
+## How to run
 
 ```bash
-# Clonar o repositorio
-git clone https://github.com/murillosezerino/commerce-intelligence.git
-cd commerce-intelligence
-
-# Criar ambiente virtual
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-
-# Instalar dependencias
 pip install -r requirements.txt
+docker-compose up -d                  # PostgreSQL
+python scripts/seed_database.py       # Seed synthetic data
+dbt run --project-dir dbt/            # Build staging views
+python main.py                        # Run analytics pipeline
 ```
 
-### Configurar Variaveis de Ambiente
+## Notes on the dataset
 
-Crie um arquivo `.env` na raiz:
+The synthetic data was generated to mimic a B2C retail distribution: realistic order frequency curves, seasonal variation, and a deliberately injected churn signal so the model has something to learn. It is not real commercial data.
 
-```env
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=commerce_intelligence
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=sua_senha
-```
+## Status
 
-### Executar
+Study repository. The patterns (dbt + segmentation + churn) are common in production e-commerce stacks; here they are exercised on a controlled dataset.
 
-```bash
-# 1. Carregar dados mock no PostgreSQL
-python data/mock_data.py
+## Author
 
-# 2. Rodar o pipeline completo (staging + RFM + churn)
-python pipeline.py
-```
-
-### Consultar Resultados
-
-```sql
--- Segmentação RFM
-SELECT segment, COUNT(*) as total,
-       ROUND(AVG(monetary)::numeric, 2) as ticket_medio
-FROM mart_rfm GROUP BY segment ORDER BY total DESC;
-
--- Predições de churn
-SELECT churn_segment, COUNT(*) as total,
-       ROUND(AVG(churn_probability)::numeric, 4) as prob_media
-FROM mart_churn GROUP BY churn_segment ORDER BY prob_media DESC;
-
--- Top clientes campeões
-SELECT customer_id, monetary, frequency, recency_days
-FROM mart_rfm WHERE segment = 'Campiao'
-ORDER BY monetary DESC LIMIT 10;
-```
-
-### Testes
-
-```bash
-pytest tests/ -v
-# 12 testes: geração de clientes, produtos, pedidos e integridade referencial
-```
-
-## Licença
-
-MIT
+Murillo Sezerino — Analytics Engineer · Data Engineer
+[murillosezerino.com](https://murillosezerino.com) · [LinkedIn](https://linkedin.com/in/murillosezerino)
