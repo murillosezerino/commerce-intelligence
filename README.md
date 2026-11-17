@@ -68,5 +68,5 @@ Study repository. The patterns (dbt + segmentation + churn) are common in produc
 
 ## Author
 
-Murillo Sezerino — Data Engineer & Analytics
+Murillo Sezerino — Software Engineer · Full Stack
 [murillosezerino.com](https://murillosezerino.com) · [LinkedIn](https://linkedin.com/in/murillosezerino)
